@@ -1,7 +1,6 @@
 #CSV utilities and parsing
 import pandas as pd
 import numpy as np
-import traceback
 
 BASE_METRICS = ('EA', 'EL',
            'PI', 'PR', 'PG',
@@ -26,7 +25,7 @@ def vectorize(source,
 
     try:    
         raw = pd.read_csv(source, header=None, on_bad_lines='skip', skiprows=2, usecols=[3, 6], index_col=False)
-        raw = raw[~raw[3].str.contains('|'.join(IGNORED_METRICS))] #Gepeto what the fuck?
+        raw = raw[~raw[3].str.contains('|'.join(IGNORED_METRICS))]
         
         list = []
         vec_row = {metric: np.nan for metric in BASE_METRICS}
@@ -57,7 +56,6 @@ def vectorize(source,
         vec.to_csv(dest, index=False, header=True)
     
     except Exception as e:
-        print(traceback.print_exc())
         return f'An error occured while parsing:\n{e}'
 
     return 'Success'
