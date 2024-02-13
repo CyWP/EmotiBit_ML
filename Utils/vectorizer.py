@@ -116,8 +116,8 @@ def vectorize(source,
             test_df = test_df.sort_values(by='timestamp')
 
             #Set filepaths
-            test_path = f'{dest}/test/{(name, lab.lower())[note_labels or label!=""]}.csv'
-            train_path = f'{dest}/train/{(name, lab.lower())[note_labels or label!=""]}.csv'
+            test_path = f'{dest}/test/{("", lab.lower())[note_labels or label!=""]}{(".", "")[name==""]}{name}.csv'
+            train_path = f'{dest}/train/{("", lab.lower())[note_labels or label!=""]}{(".", "")[name==""]}{name}.csv'
 
             #Set, changed below if necessary
             use_test_header = True

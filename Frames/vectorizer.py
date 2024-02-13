@@ -99,7 +99,7 @@ class VectorizerFrame(Frame):
         Label(self, text='    ', bg='#FFFFFF').grid(row=row, column=0)
         row+=1
 
-        self.msg_label = Label(self, text='Use this program to parse output from your EmotiBit into a vectorized one destined for machine learning.', bg='#FFFFFF', bd=2, relief='solid', fg='black', wraplength=450, padx=10, pady=10)
+        self.msg_label = Label(self, text='Parse data on your EmotiBit\'s SD card into vectorized data ready for ML.', bg='#FFFFFF', bd=2, relief='solid', fg='black', wraplength=450, padx=10, pady=10)
         self.msg_label.grid(row=row, column=1, columnspan=4, sticky='nesw')
         row+=1
 
@@ -139,8 +139,8 @@ class VectorizerFrame(Frame):
         Checkbutton(self, text='Use Notes as Labels', bg='#FFFFFF', command=self.setvar('self.note_labels', not(self.note_labels.get())), variable=self.note_labels).grid(row=row, column=3)
         row+=1
 
-        Label(self, text='Test split(%):', bg='#FFFFFF').grid(row=row, column=1, sticky='sw')
-        split_scale = Scale(self, variable=self.test_split, from_=0, to_=100, orient='horizontal')
+        Label(self, text='Test split (%):', bg='#FFFFFF').grid(row=row, column=1, sticky='sw')
+        split_scale = Scale(self, variable=self.test_split, from_=0, to_=100, orient='horizontal', background='white')
         split_scale.grid(row=row, column=2, columnspan=3, sticky='nesw')
         row+=1
 
