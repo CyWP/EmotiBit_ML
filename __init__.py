@@ -5,6 +5,7 @@ from Frames import drawFrames
 if __name__=="__main__":
 
     root = tk.Tk()
+
     root.title("EmotiBit ML Tools")
     root.minsize(520, 500)  # width, height
     root.maxsize(600, 600)

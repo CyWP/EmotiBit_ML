@@ -1,12 +1,14 @@
 #Just the UI stuff
-from tkinter import (Tk, 
-                     filedialog,
+from tkinter import (filedialog,
                      Button,
                      Checkbutton,
                      Label,
                      Entry,
                      StringVar,
                      BooleanVar,
+                     DoubleVar,
+                     Scale,
+                     Frame,
                      ttk)
 from Utils.vectorizer import vectorize
 import os
@@ -15,18 +17,16 @@ MAX_PATH_LENGTH = 45
 NAME_ENTRY_DEFAULT = ''
 LABEL_ENTRY_DEFAULT = ''
 
-class VectorizerFrame(ttk.Frame):
+class VectorizerFrame(Frame):
 
-    def __init__(self, master, **kwargs):
-        super().__init__()
-        self.root = master
-        root = self.root
+    def __init__(self, master,**kwargs):
+        super().__init__(master, **kwargs)
 
-        self.source_path = StringVar(root, 'C:/')
-        self.dir_path = StringVar(root, 'C:/')
-        self.derive_data=BooleanVar(root, True)
-        self.note_labels = BooleanVar(root, False)
-
+        self.source_path = StringVar(self, 'C:/')
+        self.dir_path = StringVar(self, 'C:/')
+        self.append_data = BooleanVar(self, True)
+        self.note_labels = BooleanVar(self, False)
+        self.test_split = DoubleVar(self)
         self.draw()
 
     def browseRawFile(self):
@@ -81,9 +81,10 @@ class VectorizerFrame(ttk.Frame):
             msg = vectorize(source=self.source_path.get(),
                             dest=self.dir_path.get(),
                             name=self.name_entry.get(),
-                            derive=self.derive_data.get(),
                             label=self.label_entry.get(),
                             note_labels=self.note_labels.get(),
+                            append_data=self.append_data.get(),
+                            test_split=self.test_split.get()/100,
                             cliphead=int(self.first_entry.get()),
                             cliptail=int(self.last_entry.get()))
             if msg == 'Success':
@@ -106,10 +107,6 @@ class VectorizerFrame(ttk.Frame):
         row+=1
 
         Button(self, text='Vectorize', command=self.parseFiles, bg='#A6B6F7').grid(row=row, column=1, columnspan=4, sticky='nesw')
-        row+=1
-
-        Checkbutton(self, text='Derive data', bg='#FFFFFF', command=self.setvar('derive_data', not(self.derive_data.get())), variable=self.derive_data).grid(row=row, column=1)
-        Checkbutton(self, text='Use Notes as Labels', bg='#FFFFFF', command=self.setvar('note_labels', not(self.note_labels.get())), variable=self.note_labels).grid(row=row, column=3)
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)
@@ -138,13 +135,13 @@ class VectorizerFrame(ttk.Frame):
         Label(self, text='', bg='#FFFFFF').grid(row=row)
         row+=1
 
-        Label(self, text='File name:', bg="#FFFFFF").grid(row=row, column=1, sticky='w')
-        self.name_entry = Entry(self, bd=1)
-        self.name_entry.grid(row=row, column=2, columnspan=3, sticky='nesw')
-        self.name_entry.insert(0, NAME_ENTRY_DEFAULT)
+        Checkbutton(self, text='Append data', bg='#FFFFFF', command=self.setvar('self.append_data', not(self.append_data.get())), variable=self.append_data).grid(row=row, column=1)
+        Checkbutton(self, text='Use Notes as Labels', bg='#FFFFFF', command=self.setvar('self.note_labels', not(self.note_labels.get())), variable=self.note_labels).grid(row=row, column=3)
         row+=1
 
-        Label(self, text='Do not add extensions or spaces.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
+        Label(self, text='Test split(%):', bg='#FFFFFF').grid(row=row, column=1, sticky='sw')
+        split_scale = Scale(self, variable=self.test_split, from_=0, to_=100, orient='horizontal')
+        split_scale.grid(row=row, column=2, columnspan=3, sticky='nesw')
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)
@@ -156,7 +153,19 @@ class VectorizerFrame(ttk.Frame):
         self.label_entry.insert(0, LABEL_ENTRY_DEFAULT)
         row+=1
 
-        Label(self, text='(Optional) Enter a label name for data in the file.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
+        Label(self, text='Label data if not provided as note in raw file. Used for file name.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
+        row+=1
+
+        Label(self, text='', bg='#FFFFFF').grid(row=row)
+        row+=1
+
+        Label(self, text='File name:', bg="#FFFFFF").grid(row=row, column=1, sticky='w')
+        self.name_entry = Entry(self, bd=1)
+        self.name_entry.grid(row=row, column=2, columnspan=3, sticky='nesw')
+        self.name_entry.insert(0, NAME_ENTRY_DEFAULT)
+        row+=1
+
+        Label(self, text='For unlabelled data only. Do not add extensions or spaces. Used for file name.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)

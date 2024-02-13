@@ -1,9 +1,22 @@
 #CSV utilities and parsing
 import pandas as pd
 import numpy as np
+import os
 import traceback
 
-BASE_METRICS = ['timestamp', 'EA', 'EL',
+def vectorize(source, 
+              dest, 
+              name='',  
+              label='',
+              note_labels=False,
+              append_data=True,
+              test_split=0.15, 
+              cliphead=0, 
+              cliptail=0,
+              use_index=False,
+              use_header=True):
+    
+    BASE_METRICS = ['timestamp', 'EA', 'EL',
            'PI', 'PR', 'PG',
            'AX', 'AY', 'AZ',
            'GX', 'GY', 'GZ',
@@ -11,25 +24,16 @@ BASE_METRICS = ['timestamp', 'EA', 'EL',
            'SA', 'SR', 'SF',
            'T1', 'HR', 'BI']
 
-IGNORED_METRICS = ['EM', 'B%', 'BV',
-                   'RB', 'TL', 'AK',
-                   'RS', 'RB', 'RD',
-                   'DC']
+    IGNORED_METRICS = ['EM', 'B%', 'BV',
+                    'RB', 'TL', 'AK',
+                    'RS', 'RB', 'RD',
+                    'DC']
+    
+    def init_row():
+        return {metric: np.nan for metric in BASE_METRICS}
 
-def init_row():
-    return {metric: np.nan for metric in BASE_METRICS}
-
-def vectorize(source, 
-              dest, 
-              name,
-              derive=True,   
-              label='',
-              note_labels=False,
-              test_split=0.15, 
-              cliphead=0, 
-              cliptail=0,
-              use_index=False,
-              use_header=True):
+    if name=='' and label=='' and not note_labels:
+        return 'Name and Label cannot both be empty if labels aren\'t inferred by notes in data.'
 
     try:
         if note_labels:
@@ -39,9 +43,6 @@ def vectorize(source,
 
         raw = pd.read_csv(source, header=None, on_bad_lines='skip', skiprows=1, usecols=[3, 6, 7], index_col=False)
         raw = raw[~raw[3].str.contains('|'.join(IGNORED_METRICS))]
-
-        if note_labels:
-            labels = raw.loc[raw[3]=='UN', 7].tolist()
         
         list = []
         vec_row = init_row()
@@ -75,7 +76,6 @@ def vectorize(source,
             indices = vec[vec['UN'].notnull()].index.tolist()
             for i in indices:
                 labels.append(vec.at[i, 'UN'])
-            print(indices, labels)
             vec = vec.drop('UN', axis=1)
 
             for start, end in zip(indices,indices[1:]):
@@ -86,26 +86,60 @@ def vectorize(source,
             labels.append(label)
             dfs.append(vec)
         
-        for vec, lab in zip(dfs, labels):
+        #Set Parameters for writing files
+        #Create missing directories
+        if(test_split > 0):
+            if not os.path.isdir(f'{dest}/test'):
+                os.makedirs(f'{dest}/test')
+        if not os.path.isdir(f'{dest}/train'):
+            os.makedirs(f'{dest}/train')
 
-            vec.dropna(how='any', inplace=True)
+        #Set writing mode
+        mode = 'a+' if append_data else 'w'
+        
+        for df, lab in zip(dfs, labels):
+
+            df.dropna(how='any', inplace=True)
 
             #Clipping Dataframe
-            vec.drop(vec.head(cliphead).index, inplace=True)
-            vec.drop(vec.tail(cliptail).index, inplace=True) 
+            df.drop(df.head(cliphead).index, inplace=True)
+            df.drop(df.tail(cliptail).index, inplace=True)
 
-            #Split into test and train
-            test_vec = vec.sample(frac=test_split)
-            train_vec = vec.drop(test_vec.index)
+            #Split into test and train, cannot use random indices due to the sequential nature of the data
+            split_index = int((1-test_split)*len(df))
+            test_df = df.iloc[split_index:, :]
+            train_df = df.iloc[:split_index, :]
 
             #Adjust timestamps
-            train_vec['timestamp'] -= train_vec['timestamp'].min()
-            test_vec['timestamp'] -= test_vec['timestamp'].min()
-            test_vec = test_vec.sort_values(by='timestamp')
+            train_df['timestamp'] -= train_df['timestamp'].min()
+            test_df['timestamp'] -= test_df['timestamp'].min()
+            test_df = test_df.sort_values(by='timestamp')
+
+            #Set filepaths
+            test_path = f'{dest}/test/{(name, lab.lower())[note_labels or label!=""]}.csv'
+            train_path = f'{dest}/train/{(name, lab.lower())[note_labels or label!=""]}.csv'
+
+            #Set, changed below if necessary
+            use_test_header = True
+            use_train_header = True
+
+            #Adjust timestamp if appending
+            if os.path.isfile(test_path) and append_data:
+                curr_test = pd.read_csv(test_path)
+                #No need to include header if appending
+                use_test_header = False
+                test_df['timestamp'] += curr_test['timestamp'].max()+1
+
+            if os.path.isfile(train_path) and append_data:
+                curr_train = pd.read_csv(train_path)
+                #No need to include header if appending
+                use_train_header = False
+                train_df['timestamp'] += curr_train['timestamp'].max()+1
+
 
             if(test_split > 0):
-                test_vec.to_csv(f'{dest}/{(f"{lab}_", "")[lab!=""]}{name}_test.csv', index=use_index, header=use_header)
-            train_vec.to_csv(f'{dest}/{(f"{lab}_", "")[lab!=""]}{name}_train.csv', index=use_index, header=use_header)
+                test_df.to_csv(test_path, index=use_index, mode=mode, header=use_test_header)
+            train_df.to_csv(train_path, index=use_index, mode=mode, header=use_train_header)
         
     except Exception as e:
         print(traceback.format_exc())
