@@ -1,6 +1,7 @@
 from .home import HomeFrame
 from .vectorizer import VectorizerFrame
 from .listener import ListenerFrame
+from .dispatcher import DispatcherFrame
 from tkinter import ttk
 
 def drawFrames(master: ttk.Notebook):
@@ -13,6 +14,10 @@ def drawFrames(master: ttk.Notebook):
     vecframe.config(background='white')
     master.add(vecframe, text='Vectorizer')
 
-    lisframe = ListenerFrame(master)
+    '''lisframe = ListenerFrame(master)
     lisframe.config(background='white')
-    master.add(lisframe, text='Listener')
+    master.add(lisframe, text='Listener')'''
+
+    disframe = DispatcherFrame(master)
+    disframe.config(background='white')
+    master.add(disframe, text='Dispatcher', sticky='nesw')
