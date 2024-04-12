@@ -11,7 +11,7 @@ from tkinter import (filedialog,
                      ttk)
 from PIL import Image, ImageTk
 from Utils.vectorizer import vectorize
-import os
+import webbrowser
 
 class HomeFrame(Frame):
 
@@ -22,5 +22,9 @@ class HomeFrame(Frame):
     def draw(self):
         self.image = ImageTk.PhotoImage(Image.open("./logo.png"))
 
+        Button(self, text='Documentation', height=3, bg='#A6B6F7', command=self.open_docs).pack(side='top', fill='x', expand=True)
         self.photo = Label(self, image=self.image)
         self.photo.pack(side='top', fill='both', expand=True)
+
+    def open_docs(self):
+        webbrowser.open('https://github.com/CyWP/EmotiBit_ML')
