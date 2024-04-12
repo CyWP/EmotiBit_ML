@@ -26,7 +26,7 @@ async def main():
         await asyncio.gather(TaskManager.run_tasks())
     except KeyboardInterrupt:
         pass
-    finally:
+    finally:    
         await TaskManager.cancel_tasks()
 
 def on_closing():
@@ -40,7 +40,7 @@ async def cancel_all_tasks():
 async def tkinter_mainloop(root):
     while True:
         root.update()
-        await asyncio.sleep(0.01)  # Adjust sleep time as needed
+        await asyncio.sleep(0.1)  # Adjust sleep time as needed
 
 if __name__ == "__main__":
     asyncio.run(main())

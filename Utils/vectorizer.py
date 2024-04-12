@@ -3,13 +3,13 @@ import pandas as pd
 import numpy as np
 import os
 import traceback
+import time
 
 def vectorize(source, 
               dest, 
               name='',  
               label='',
               note_labels=False,
-              append_data=True,
               test_split=0.15, 
               cliphead=0, 
               cliptail=0,
@@ -93,9 +93,6 @@ def vectorize(source,
                 os.makedirs(f'{dest}/test')
         if not os.path.isdir(f'{dest}/train'):
             os.makedirs(f'{dest}/train')
-
-        #Set writing mode
-        mode = 'a+' if append_data else 'w'
         
         for df, lab in zip(dfs, labels):
 
@@ -116,37 +113,25 @@ def vectorize(source,
             test_df = test_df.sort_values(by='timestamp')
 
             #Set filepaths
-            test_path = f'{dest}/test/{("", lab.lower())[note_labels or label!=""]}{(".", "")[name==""]}{name}.csv'
-            train_path = f'{dest}/train/{("", lab.lower())[note_labels or label!=""]}{(".", "")[name==""]}{name}.csv'
+            timestamp = str(int(time.time()))
+            test_path = train_path = f'{dest}/train/' \
+                                    f'{"{0}.".format(lab.lower()) if not (note_labels or label) else ""}' \
+                                    f'{name if name else timestamp}.csv'
+            
+            train_path = train_path = f'{dest}/{"train/" if test_split > 0 else ""}' \
+                                    f'{"{0}.".format(lab.lower()) if not (note_labels or label) else ""}' \
+                                    f'{name if name else timestamp}.csv'
 
             #Set, changed below if necessary
             use_test_header = True
             use_train_header = True
 
-            #Adjust timestamp if appending
-            if os.path.isfile(test_path) and append_data:
-                curr_test = pd.read_csv(test_path)
-                #No need to include header if appending
-                use_test_header = False
-                test_df['timestamp'] += curr_test['timestamp'].max()+1
-
-            if os.path.isfile(train_path) and append_data:
-                curr_train = pd.read_csv(train_path)
-                #No need to include header if appending
-                use_train_header = False
-                train_df['timestamp'] += curr_train['timestamp'].max()+1
-
-
             if(test_split > 0):
-                test_df.to_csv(test_path, index=use_index, mode=mode, header=use_test_header)
-            train_df.to_csv(train_path, index=use_index, mode=mode, header=use_train_header)
+                test_df.to_csv(test_path, index=use_index, mode='w', header=use_test_header)
+            train_df.to_csv(train_path, index=use_index, mode='w', header=use_train_header)
         
     except Exception as e:
         print(traceback.format_exc())
         return f'An error occured while parsing:\n{e}'
 
     return 'Success'
-
-#useful for testing
-if __name__ == "__main__":
-    print(vectorize("C:/Users/thoma/Documents/WINTER24/SensorLab/Raw/2024-02-12_13-32-34-349344.csv", "C:/Users/thoma/Desktop", "test", note_labels=True))

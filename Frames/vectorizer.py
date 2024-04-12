@@ -124,7 +124,7 @@ class VectorizerFrame(Frame):
         row+=1
 
         #Destination directory selector
-        Label(self, text='Target directory:', bg='#FFFFFF').grid(row=row, column=1)
+        Label(self, text='Target directory', bg='#FFFFFF').grid(row=row, column=1)
         row+=1
 
         Button(self, text='Browse', command=self.browseTargetDirectory).grid(row=row, column=4, sticky='nesw')
@@ -135,37 +135,36 @@ class VectorizerFrame(Frame):
         Label(self, text='', bg='#FFFFFF').grid(row=row)
         row+=1
 
-        Checkbutton(self, text='Append data', bg='#FFFFFF', command=self.setvar('self.append_data', not(self.append_data.get())), variable=self.append_data).grid(row=row, column=1)
         Checkbutton(self, text='Use Notes as Labels', bg='#FFFFFF', command=self.setvar('self.note_labels', not(self.note_labels.get())), variable=self.note_labels).grid(row=row, column=3)
         row+=1
 
         Label(self, text='Test split (%):', bg='#FFFFFF').grid(row=row, column=1, sticky='sw')
-        split_scale = Scale(self, variable=self.test_split, from_=0, to_=100, orient='horizontal', background='white')
-        split_scale.grid(row=row, column=2, columnspan=3, sticky='nesw')
+        self.split_scale = Scale(self, variable=self.test_split, from_=0, to_=100, orient='horizontal', background='white')
+        self.split_scale.grid(row=row, column=2, columnspan=3, sticky='nesw')
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)
         row+=1
 
-        Label(self, text='Label data:', bg='#FFFFFF').grid(row=row, column=1, sticky='w')
+        Label(self, text='Label:', bg='#FFFFFF').grid(row=row, column=1, sticky='w')
         self.label_entry = Entry(self, bd=1)
         self.label_entry.grid(row=row, column=2, columnspan=3, sticky='nesw')
         self.label_entry.insert(0, LABEL_ENTRY_DEFAULT)
         row+=1
 
-        Label(self, text='Label data if not provided as note in raw file. Used for file name.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
+        Label(self, text='Label data if not provided as note in raw file', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)
         row+=1
 
-        Label(self, text='File name:', bg="#FFFFFF").grid(row=row, column=1, sticky='w')
+        Label(self, text='Name:', bg="#FFFFFF").grid(row=row, column=1, sticky='w')
         self.name_entry = Entry(self, bd=1)
         self.name_entry.grid(row=row, column=2, columnspan=3, sticky='nesw')
         self.name_entry.insert(0, NAME_ENTRY_DEFAULT)
         row+=1
 
-        Label(self, text='For unlabelled data only. Do not add extensions or spaces. Used for file name.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
+        Label(self, text='Name of the recording, uses timestamp if left empty.', bg='#FFFFFF').grid(row=row, column=1, columnspan=4, sticky='w')
         row+=1
 
         Label(self, text='', bg='#FFFFFF').grid(row=row)

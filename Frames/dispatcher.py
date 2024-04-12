@@ -80,7 +80,7 @@ class DispatcherFrame(Frame):
         self.in_port = Entry(self, bd=1)
         self.in_port.grid(row=row, column=2, sticky='nesw')
         self.in_port.insert(0, '12345')
-        Label(self, text='Frequency:', bg='#FFFFFF').grid(row=row, column=3, sticky='nesw')
+        Label(self, text='Max Freq:', bg='#FFFFFF').grid(row=row, column=3, sticky='nesw')
         self.frequency = Entry(self, bd=1)
         self.frequency.grid(row=row, column=4, sticky='nesw')
         self.frequency.insert(0, '10')

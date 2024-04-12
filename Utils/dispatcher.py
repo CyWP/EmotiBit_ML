@@ -9,9 +9,11 @@ class OSCRelay():
 
     ADDRESS_PREFIX = "/EmotiBit/0/"
 
+    SEND_ADDRESS = "/EmotiBit"
+
     #We are somehow missing: scr:amp,freq,ris , temp, hr, 
-    ADDRESS_POSTFIXES = ("EDA",
-                        "PPG:IR", "PPG:RED", "PPG:GRN"
+    ADDRESS_POSTFIXES = ("EDA", "T1", "SF",
+                        "PPG:IR", "PPG:RED", "PPG:GRN",
                         "ACC:X", "ACC:Y", "ACC:Z",
                         "GYRO:X", "GYRO:Y", "GYRO:Z",
                         "MAG:X", "MAG:Y", "MAG:Z")
@@ -42,11 +44,18 @@ class OSCRelay():
         self.stop = True
     
     def msg_handler(self, address, args, index):
-        self.vector[index] = np.mean(args[0]) 
+        start = time.time()
+        self.vector[index] = np.mean(args[0])
+        if start - self.time > self.wait:
+            for client in self.clients:
+                client.send_message(OSCRelay.SEND_ADDRESS, self.vector[client.mask])
+        self.time = time.time()
 
     async def dispatch(self, port=12345, frequency=10, ip='127.0.0.1'):
 
-        self.stop = False       
+        self.stop = False  
+        self.wait = max(0, 0.9/frequency-0.05*len(self.clients)) #not reliable, tries to approximate time it takes to send messages
+        self.time = time.time() 
         dispatcher = Dispatcher()
 
         for i, postfix in enumerate(OSCRelay.ADDRESS_POSTFIXES):
@@ -54,23 +63,19 @@ class OSCRelay():
 
         server = osc_server.AsyncIOOSCUDPServer((ip, port), dispatcher, asyncio.get_event_loop())
         transport, protocol = await server.create_serve_endpoint()  # Create datagram endpoint and start serving
-
-        await self.loop(frequency)
+        await self.loop()
         transport.close()
 
-    async def loop(self, frequency):
-        rest = 1/frequency
+    async def loop(self):
         while not self.stop:
-            start = time.time()
-            for client in self.clients:
-                client.send_message(OSCRelay.ADDRESS_PREFIX, self.vector[client.mask])
-            await asyncio.sleep(max(0, rest-time.time()+start))
+            await asyncio.sleep(0.5)
 
 class RelayClient(SimpleUDPClient):
 
-    MASKS = {'ALL': np.array([True, True, True, True, True, True, True, True, True, True, True, True, True]),
-             'IMU': np.array([False, False, False, False, True, True, True, True, True, True, True, True, True]),
-             'BIO': np.array([True, True, True, True, False, False, False, False, False, False, False, False, False, False])}
+    MASKS = {'ALL': np.array([True, True, True, True, True, True, True, True, True, True, True, True, True, True, True]),
+             'IMU': np.array([False, False, False, False, False, False, True, True, True, True, True, True, True, True, True]),
+             'AG': np.array([False, False, False, False, False, False, True, True, True, True, True, True, False, False, False]),
+             'BIO': np.array([True, True, True, True, True, False, False, False, False, False, False, False, False, False, False])}
 
     def __init__(self, ip, port, preset):
 
